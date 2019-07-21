@@ -4,3 +4,8 @@
 
 !.gitignore
 !README.md
+
+!lib/__init__.py
+!lib/drone.py
+!lib/state.py
+!lib/face.py
