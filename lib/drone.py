@@ -80,8 +80,13 @@ class Drone(object):
 
 
     def _thread_get_frame(self):
+        frame_skip = 300
         while self._is_working:
             for frame in self._container.decode(video=0):
+                if 0 < frame_skip:
+                    frame_skip -= 1
+                    continue
+                    
                 self._frame = cv2.cvtColor(np.array(frame.to_image()), cv2.COLOR_RGB2BGR)
 
 
