@@ -16,15 +16,31 @@ class Drone(object):
         self._drone = tellopy.Tello()
         self._drone.set_loglevel(0)
 
+        # shutdown if False
+        self._is_working = True
+
         # try to connect
         self._drone.connect()
         self._drone.wait_for_connection(60.0)
         self._container = av.open(self._drone.get_video_stream())
 
         # video
-        self._frame = None 
-        self._tpe = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-        self._tpe.submit(self._video_stream)
+        self._frame = None
+        self._frame_show = np.zeros((640, 480), dtype=np.uint8) 
+        self._tpe = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+        self._tpe.submit(self._thread_get_frame)
+        self._tpe.submit(self._thread_show_frame)
+
+
+    def is_working(self):
+        return self._is_working
+
+
+    def done(self):
+        self._is_working = False
+        self.land()
+        cv2.destroyAllWindows()
+        cv2.waitKey(1)
 
 
     def takeoff(self):
@@ -63,12 +79,26 @@ class Drone(object):
         self._drone.counter_clockwise(0)
 
 
-    def _video_stream(self):
-        while True:
+    def _thread_get_frame(self):
+        while self._is_working:
             for frame in self._container.decode(video=0):
                 self._frame = cv2.cvtColor(np.array(frame.to_image()), cv2.COLOR_RGB2BGR)
 
 
-    def get_camera(self):
+    def _thread_show_frame(self):
+        while self._is_working:
+            cv2.imshow('window', self._frame_show)
+            key = cv2.waitKey(1)
+
+            # forced termination
+            if key & 0xFF == ord('q'):
+                self.done()
+
+
+    def subscribe_frame(self):
         ret = False if self._frame is None else True
         return ret, self._frame
+
+
+    def publish_frame(self, x):
+        self._frame_show = x

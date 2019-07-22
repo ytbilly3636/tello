@@ -8,6 +8,8 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../tello'))
 from lib import StateMachine, FaceDetector
 
+import cv2
+
 
 class Follow(StateMachine):
     def __init__(self, area_target=30000, area_th=5000, center_th=100):
@@ -27,58 +29,64 @@ class Follow(StateMachine):
 
 
     def _sm_find_person(self):
-        # get camera image
-        ret, img = self._drone.get_camera()
-        if not ret:
-            return self._sm_find_person
+        while True:
+            # get camera image
+            ret, img = self._drone.subscribe_frame()
+            if not ret:
+                continue
 
-        # get face
-        ret, f, x, y, w, h = self._face.detect_face(img)
+            # publish camera image
+            self._drone.publish_frame(img)
 
-        # face is found
-        if ret:
-            print('********** face is found **********')
-            return self._sm_follow_person
+            # get face
+            ret, f, x, y, w, h = self._face.detect_face(img)
 
-        # face is not found
-        self._drone.controll(t=1.0, vr=0.1)
-        return self._sm_find_person
+            # face is found
+            if ret:
+                print('********** face is found **********')
+                return self._sm_follow_person
+
+            # face is not found
+            self._drone.controll(t=1.0, vr=0.1)
 
 
     def _sm_follow_person(self):
-        # get camera image
-        ret, img = self._drone.get_camera()
-        if not ret:
-            return self._sm_find_person
+        while True:
+            # get camera image
+            ret, img = self._drone.subscribe_frame()
+            if not ret:
+                continue
 
-        # get face
-        ret, f, x, y, w, h = self._face.detect_face(img)
+            # get face
+            ret, f, x, y, w, h = self._face.detect_face(img)
 
-        # face is not found
-        if not ret:
-            print('********** face is lost **********')
-            return self._sm_find_person
+            # publish camera image
+            cv2.rectangle(img, (x, y), (w, h), (0, 0, 255), 1)
+            self._drone.publish_frame(img)
 
-        # current status
-        area = self._face.wh2area(w, h)
-        center = self._face.xywh2center(x, y, w, h)
-        center_target = img.shape[1] // 2, img.shape[0] // 2
-        print('area', area)
-        print('center', center)
+            # face is not found
+            if not ret:
+                print('********** face is lost **********')
+                return self._sm_find_person
 
-        # controll to adjust
-        adj_x = 0.0
-        adj_y = 0.0
-        adj_z = 0.0
-        if abs(area - self._area_target) > self._area_th:
-            adj_x = 0.1 if area < self._area_target     else -0.1
-        if abs(center[0] - center_target[0]) > self._center_th:
-            adj_y = 0.1 if center[0] < center_target[0] else -0.1 
-        if abs(center[1] > center_target[1]) > self._center_th:
-            adj_z = 0.1 if center[1] < center_target[1] else -0.1
-        self._drone.controll(t=0.5, vx=adj_x, vy=adj_y, vz=adj_z)
+            # current status
+            area = self._face.wh2area(w, h)
+            center = self._face.xywh2center(x, y, w, h)
+            center_target = img.shape[1] // 2, img.shape[0] // 2
+            print('area', area)
+            print('center', center)
 
-        return self._sm_follow_person
+            # controll to adjust
+            adj_x = 0.0
+            adj_y = 0.0
+            adj_z = 0.0
+            if abs(area - self._area_target) > self._area_th:
+                adj_x = 0.1 if area < self._area_target     else -0.1
+            if abs(center[0] - center_target[0]) > self._center_th:
+                adj_y = 0.1 if center[0] < center_target[0] else -0.1 
+            if abs(center[1] > center_target[1]) > self._center_th:
+                adj_z = 0.1 if center[1] < center_target[1] else -0.1
+            self._drone.controll(t=0.5, vx=adj_x, vy=adj_y, vz=adj_z)
 
 
 if __name__ == '__main__':
