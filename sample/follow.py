@@ -12,19 +12,49 @@ import cv2
 
 
 class Follow(StateMachine):
-    def __init__(self, area_target=30000, area_th=5000, center_th=100):
+    def __init__(self, 
+        area_target = 30000, 
+        area_th     = 5000, 
+        center_th   = 100,
+        tr          = 0.5,
+        vr          = 0.25,
+        tg          = 0.25,
+        vx          = 0.1,
+        vy          = 0.1,
+        vz          = 0.1,
+        dbg         = False
+        ):
         super(Follow, self).__init__()
         self._state = self._sm_takeoff
 
         self._face = FaceDetector()
+
+        # hyperparameters
         self._area_target = area_target
         self._area_th = area_th
         self._center_th = center_th
+        self._tr = tr
+        self._vr = vr
+        self._tg = tg
+        self._vx = vx
+        self._vy = vy
+        self._vz = vz
+
+        # debug mode
+        self._debug = dbg
 
 
     def _sm_takeoff(self):
         print('********** take off **********')
-        self._drone.takeoff()
+        if not self._debug:
+            self._drone.takeoff()
+        return self._sm_goup
+
+
+    def _sm_goup(self):
+        print('********** go up **********')
+        if not self._debug:
+            self._drone.controll(t=2.0, vz=0.5)
         return self._sm_find_person
 
 
@@ -47,7 +77,8 @@ class Follow(StateMachine):
                 return self._sm_follow_person
 
             # face is not found
-            self._drone.controll(t=1.0, vr=0.1)
+            if not self._debug:
+                self._drone.controll(t=self._tr, vr=self._vr)
 
 
     def _sm_follow_person(self):
@@ -60,14 +91,14 @@ class Follow(StateMachine):
             # get face
             ret, f, x, y, w, h = self._face.detect_face(img)
 
-            # publish camera image
-            cv2.rectangle(img, (x, y), (w, h), (0, 0, 255), 1)
-            self._drone.publish_frame(img)
-
             # face is not found
             if not ret:
                 print('********** face is lost **********')
                 return self._sm_find_person
+
+            # publish camera image
+            cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 1)
+            self._drone.publish_frame(img)
 
             # current status
             area = self._face.wh2area(w, h)
@@ -81,14 +112,17 @@ class Follow(StateMachine):
             adj_y = 0.0
             adj_z = 0.0
             if abs(area - self._area_target) > self._area_th:
-                adj_x = 0.1 if area < self._area_target     else -0.1
+                adj_x = self._vx if area < self._area_target     else -1 * self._vx
             if abs(center[0] - center_target[0]) > self._center_th:
-                adj_y = 0.1 if center[0] < center_target[0] else -0.1 
-            if abs(center[1] > center_target[1]) > self._center_th:
-                adj_z = 0.1 if center[1] < center_target[1] else -0.1
-            self._drone.controll(t=0.5, vx=adj_x, vy=adj_y, vz=adj_z)
+                adj_y = self._vy if center[0] < center_target[0] else -1 * self._vy
+            if abs(center[1] - center_target[1]) > self._center_th:
+                adj_z = self._vz if center[1] < center_target[1] else -1 * self._vz
+
+            print(adj_x, adj_y, adj_z)
+            if not self._debug:
+                self._drone.controll(t=self._tg, vx=adj_x, vy=adj_y, vz=adj_z)
 
 
 if __name__ == '__main__':
-    fol = Follow()
+    fol = Follow(dbg=False)
     fol.execute()

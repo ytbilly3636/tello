@@ -26,7 +26,7 @@ class Drone(object):
 
         # video
         self._frame = None
-        self._frame_show = np.zeros((640, 480), dtype=np.uint8) 
+        self._frame_show = np.zeros((480, 640), dtype=np.uint8) 
         self._tpe = concurrent.futures.ThreadPoolExecutor(max_workers=2)
         self._tpe.submit(self._thread_get_frame)
         self._tpe.submit(self._thread_show_frame)

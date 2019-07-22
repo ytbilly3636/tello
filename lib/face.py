@@ -11,7 +11,7 @@ import os
 
 
 class FaceDetector(object):
-    def __init__(self, xml_path='/usr/local/lib/python3.5/dist-packages/cv2/data/haarcascade_frontalcatface_extended.xml'):
+    def __init__(self, xml_path='/usr/local/lib/python3.5/dist-packages/cv2/data/haarcascade_frontalcatface.xml'):
         if not os.path.exists(xml_path):
             sys.exit('Could not find xml file: ' + xml_path)
 
