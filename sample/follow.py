@@ -9,6 +9,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../tello'))
 from lib import StateMachine, FaceDetector
 
 import cv2
+import time
 
 
 class Follow(StateMachine):
@@ -16,12 +17,12 @@ class Follow(StateMachine):
         area_target = 30000, 
         area_th     = 5000, 
         center_th   = 100,
-        tr          = 0.5,
+        tr          = 1.0,
         vr          = 0.25,
         tg          = 0.25,
         vx          = 0.1,
         vy          = 0.1,
-        vz          = 0.1,
+        vz          = 0.4,
         dbg         = False
         ):
         super(Follow, self).__init__()
@@ -48,13 +49,14 @@ class Follow(StateMachine):
         print('********** take off **********')
         if not self._debug:
             self._drone.takeoff()
+            time.sleep(3)
         return self._sm_goup
 
 
     def _sm_goup(self):
         print('********** go up **********')
         if not self._debug:
-            self._drone.controll(t=2.0, vz=0.5)
+            self._drone.controll(t=1.0, vz=0.5)
         return self._sm_find_person
 
 
@@ -103,7 +105,7 @@ class Follow(StateMachine):
             # current status
             area = self._face.wh2area(w, h)
             center = self._face.xywh2center(x, y, w, h)
-            center_target = img.shape[1] // 2, img.shape[0] // 2
+            center_target = img.shape[1] // 2, img.shape[0] // 4
             print('area', area)
             print('center', center)
 
