@@ -59,7 +59,7 @@ class Follow(StateMachine):
 
 
     def _sm_find_person(self):
-        while True:
+        while self.is_working():
             # get camera image
             ret, img = self._drone.subscribe_frame()
             if not ret:
@@ -82,7 +82,7 @@ class Follow(StateMachine):
 
 
     def _sm_follow_person(self):
-        while True:
+        while self.is_working():
             # get camera image
             ret, img = self._drone.subscribe_frame()
             if not ret:

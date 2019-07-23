@@ -26,6 +26,10 @@ class StateMachine(object):
         while self._drone.is_working():
             self._state = self._state()
 
+
+    def is_working(self):
+        return self._drone.is_working()
+        
     
     def done(self):
         self._drone.done()
