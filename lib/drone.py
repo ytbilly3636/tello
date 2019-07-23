@@ -61,7 +61,7 @@ class Drone(object):
 
         # set velocity
         self._drone.forward(vx)     if vx > 0 else self._drone.backward(abs(vx))
-        self._drone.left(vy)        if vy > 0 else self._drone.left(abs(vy))
+        self._drone.left(vy)        if vy > 0 else self._drone.right(abs(vy))
         self._drone.up(vz)          if vz > 0 else self._drone.down(abs(vz))
         self._drone.clockwise(vr)   if vr > 0 else self._drone.counter_clockwise(abs(vr))
 
@@ -72,7 +72,7 @@ class Drone(object):
         self._drone.forward(0)
         self._drone.backward(0)
         self._drone.left(0)
-        self._drone.left(0)
+        self._drone.right(0)
         self._drone.up(0)
         self._drone.down(0)
         self._drone.clockwise(0)
