@@ -22,11 +22,17 @@ class FaceDetector(object):
             if os.path.exists(tmp_path):
                 xml_path = tmp_path
         
-        # could not find
+        # could not find the xml file
         if xml_path == None:
             sys.exit('Could not find haarcascade_frontalcatface.xml')
 
+        # load xml file
         self._cascade = cv2.CascadeClassifier(xml_path)
+
+        # for maching
+        self._template = None
+        self._orb = cv2.ORB_create()
+        self._bfm = cv2.BFMatcher(cv2.NORM_HAMMING)
 
 
     def detect_face(self, frame):
@@ -70,3 +76,31 @@ class FaceDetector(object):
 
     def wh2area(self, w, h):
         return w * h
+
+
+    def set_template(self, x, resize=(200, 200)):
+        self._template = cv2.cvtColor(cv2.resize(x, resize), cv2.COLOR_BGR2GRAY)
+        _, self._des_template = self._orb.detectAndCompute(self._template, None)
+
+
+    def distance_template(self, x):
+        if self._template is None:
+            print('No template is set')
+            return 0
+
+        # feature
+        img = cv2.cvtColor(cv2.resize(x, (self._template.shape[1], self._template.shape[0])), cv2.COLOR_BGR2GRAY)
+        _, des = self._orb.detectAndCompute(img, None)
+
+        # matching
+        matches = self._bfm.match(des, self._des_template)
+        dist = [m.distance for m in matches]
+
+        # if python2, sys.maxint should be used instead of sys.maxsize
+        return sum(dist) / (len(dist) + (1.0 / sys.maxsize))
+
+
+    def match_template(self, x, th=100):
+        distance = self.distance_template(x)
+        ret = True if distance < th else False
+        return ret
