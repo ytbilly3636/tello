@@ -8,12 +8,23 @@ import chainer
 
 import sys
 import os
+import site
 
 
 class FaceDetector(object):
-    def __init__(self, xml_path='/usr/local/lib/python3.5/dist-packages/cv2/data/haarcascade_frontalcatface.xml'):
-        if not os.path.exists(xml_path):
-            sys.exit('Could not find xml file: ' + xml_path)
+    def __init__(self):
+        xml_path = None
+        
+        # search dist-package
+        sites = site.getsitepackages()
+        for s in sites:
+            tmp_path = os.path.join(s, 'cv2/data/haarcascade_frontalcatface.xml')
+            if os.path.exists(tmp_path):
+                xml_path = tmp_path
+        
+        # could not find
+        if xml_path == None:
+            sys.exit('Could not find haarcascade_frontalcatface.xml')
 
         self._cascade = cv2.CascadeClassifier(xml_path)
 
