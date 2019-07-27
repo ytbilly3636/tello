@@ -1,8 +1,6 @@
 # tello
 
-## Environment
-
-Python3 on Debian 9 as WSL
+## Requirements
 
 * tellopy
 * cv2
@@ -11,6 +9,8 @@ Python3 on Debian 9 as WSL
     * libavdevice-dev
     * libavfilter-dev
 * chainer
+
+### Python3 on Debian 9 as WSL
 
 ```sh
 # Python3
@@ -30,4 +30,20 @@ $ pip3 install av
 
 # chainer
 $ pip3 install chainer
+```
+
+### Anaconda
+
+```sh
+# tellopy
+$ pip install tellopy
+
+# opencv
+$ pip install opencv-python
+
+# av
+$ conda install av -c conda-forge
+
+# chainer
+$ pip install chainer
 ```
