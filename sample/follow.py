@@ -14,11 +14,11 @@ import time
 
 class Follow(StateMachine):
     def __init__(self, 
-        area_target = 30000, 
+        area_target = 20000, 
         area_th     = 5000, 
         center_th   = 100,
         tg          = 0.2,
-        vx          = 0.2,
+        vx          = 0.15,
         vr          = 0.4,
         vz          = 0.4,
         dbg         = False
@@ -53,10 +53,10 @@ class Follow(StateMachine):
         print('********** go up **********')
         if not self._debug:
             self._drone.controll(t=1.0, vz=0.5)
-        return self._sm_find_person
+        return self._sm_remember_person
 
 
-    def _sm_find_person(self):
+    def _sm_remember_person(self):
         while self.is_working():
             # get camera image
             ret, img = self._drone.subscribe_frame()
@@ -72,6 +72,10 @@ class Follow(StateMachine):
             # face is found
             if ret:
                 print('********** face is found **********')
+
+                # remember the face
+                self._face.set_template(f)
+
                 return self._sm_follow_person
 
 
@@ -83,7 +87,7 @@ class Follow(StateMachine):
                 continue
 
             # get face
-            ret, f, x, y, w, h = self._face.detect_face(img)
+            ret, f, x, y, w, h = self._face.detect_template_face(img)
 
             # face is not found
             if not ret:
@@ -97,9 +101,9 @@ class Follow(StateMachine):
             # current status
             area = self._face.wh2area(w, h)
             center = self._face.xywh2center(x, y, w, h)
-            center_target = img.shape[1] // 2, img.shape[0] // 4
-            print('area', area)
-            print('center', center)
+            center_target = img.shape[1] // 2, img.shape[0] // 3
+            #print('area', area)
+            #print('center', center)
 
             # controll to adjust
             adj_x = 0.0
@@ -112,9 +116,28 @@ class Follow(StateMachine):
             if abs(center[1] - center_target[1]) > self._center_th:
                 adj_z = self._vz if center[1] < center_target[1] else -1 * self._vz
 
-            print(adj_x, adj_r, adj_z)
+            #print(adj_x, adj_r, adj_z)
             if not self._debug:
                 self._drone.controll(t=self._tg, vx=adj_x, vr=adj_r, vz=adj_z)
+
+
+    def _sm_find_person(self, timeout=100):
+        for t in range(timeout):
+            # get camera image
+            ret, img = self._drone.subscribe_frame()
+            if not ret:
+                continue
+
+            # get face
+            ret, f, x, y, w, h = self._face.detect_template_face(img)
+
+            # face is re-found
+            if ret:
+                print('********** face is re-found **********')
+                return self._sm_follow_person
+
+        print('********** timeout, searching new face **********')
+        return self._sm_remember_person
 
 
 if __name__ == '__main__':

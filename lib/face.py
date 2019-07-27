@@ -93,14 +93,51 @@ class FaceDetector(object):
         _, des = self._orb.detectAndCompute(img, None)
 
         # matching
-        matches = self._bfm.match(des, self._des_template)
-        dist = [m.distance for m in matches]
+        try:
+            matches = self._bfm.match(des, self._des_template)
+            dist = [m.distance for m in matches]
 
-        # if python2, sys.maxint should be used instead of sys.maxsize
-        return sum(dist) / (len(dist) + (1.0 / sys.maxsize))
+            # if python2, sys.maxint should be used instead of sys.maxsize
+            return sum(dist) / (len(dist) + (1.0 / sys.maxsize))
+        
+        except cv2.error:
+            return sys.maxsize
 
 
     def match_template(self, x, th=100):
         distance = self.distance_template(x)
+        print(distance)
         ret = True if distance < th else False
         return ret
+
+    
+    def detect_template_face(self, frame):
+        if self._template is None:
+            print('No template is set')
+            return False, None, None, None, None, None
+
+        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = self._cascade.detectMultiScale(frame_gray)
+
+        # no face is found
+        if len(faces) < 1:
+            return False, None, None, None, None, None
+        
+        # return the template face
+        ret = False
+        face = None
+        x_face = None
+        y_face = None
+        w_face = None
+        h_face = None
+        for x, y, w, h in faces:
+            face = frame[y:y+h, x:x+w]
+
+            if self.match_template(face):
+                ret = True
+                x_face = x
+                y_face = y
+                w_face = w
+                h_face = h
+
+        return ret, face, x_face, y_face, w_face, h_face
