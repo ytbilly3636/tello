@@ -47,3 +47,10 @@ $ conda install av -c conda-forge
 # chainer
 $ pip install chainer
 ```
+
+## Quick Start
+Tello finds the nearest face and track the face.
+
+```sh
+$ python3 sample/follow.py
+```
