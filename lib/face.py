@@ -17,13 +17,13 @@ class FaceDetector(object):
         # search dist-package
         sites = site.getsitepackages()
         for s in sites:
-            tmp_path = os.path.join(s, 'cv2/data/haarcascade_frontalcatface.xml')
+            tmp_path = os.path.join(s, 'cv2/data/haarcascade_frontalface_alt.xml')
             if os.path.exists(tmp_path):
                 xml_path = tmp_path
         
         # could not find the xml file
         if xml_path == None:
-            sys.exit('Could not find haarcascade_frontalcatface.xml')
+            sys.exit('Could not find haarcascade_frontalface_alt.xml')
 
         # load xml file
         self._cascade = cv2.CascadeClassifier(xml_path)
