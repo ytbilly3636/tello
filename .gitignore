@@ -9,5 +9,6 @@
 !lib/drone.py
 !lib/state.py
 !lib/face.py
+!lib/ar.py
 
 !sample/follow.py

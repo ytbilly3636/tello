@@ -10,7 +10,7 @@
     * libavfilter-dev
 * chainer
 
-### Python3 on Debian 9 as WSL
+### Debian 9 / Ubuntu 18.04
 
 ```sh
 # Python3
@@ -22,7 +22,7 @@ $ pip3 install tellopy
 
 # opencv
 $ apt-get install libopencv-dev
-$ pip3 install opencv-python
+$ pip3 install opencv-python opencv-contrib-python
 
 # av
 $ apt-get install libavdevice-dev libavfilter-dev
@@ -39,7 +39,7 @@ $ pip3 install chainer
 $ pip install tellopy
 
 # opencv
-$ pip install opencv-python
+$ pip install opencv-python opencv-contrib-python
 
 # av
 $ conda install av -c conda-forge
