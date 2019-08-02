@@ -52,5 +52,5 @@ $ pip install chainer
 Tello finds the nearest face and track the face.
 
 ```sh
-$ python3 sample/follow.py
+$ python3 sample/follow_face.py
 ```

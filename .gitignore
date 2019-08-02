@@ -11,4 +11,5 @@
 !lib/face.py
 !lib/ar.py
 
-!sample/follow.py
+!sample/follow_face.py
+!sample/follow_ar.py
