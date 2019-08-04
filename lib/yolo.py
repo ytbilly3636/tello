@@ -75,8 +75,8 @@ class YOLO(object):
         # find high confidence object
         for out in outputs:
             for detection in out:
-                class_id = np.argmax(detections[5:])
-                conf = detections[5:][class_id]
+                class_id = np.argmax(detection[5:])
+                conf = detection[5:][class_id]
 
                 # skip low confidence
                 if conf < threshold:
