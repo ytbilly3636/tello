@@ -10,6 +10,7 @@
 !lib/state.py
 !lib/face.py
 !lib/ar.py
+!lib/yolo.py
 
 !sample/follow_face.py
 !sample/follow_ar.py
